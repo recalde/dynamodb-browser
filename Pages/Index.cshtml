@@ -1,7 +1,7 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "DynamoDB Browser";
+    ViewData["Title"] = "DynamoDB Query Tool";
 }
 
 <!DOCTYPE html>
@@ -17,7 +17,9 @@
 </head>
 <body>
 
-    <h2>Select a DynamoDB Table</h2>
+    <h2>DynamoDB Query Tool</h2>
+    
+    <label>Select Table:</label>
     <select id="tableSelect">
         <option value="">-- Select a Table --</option>
         @foreach (var table in Model.TableNames)
@@ -25,6 +27,14 @@
             <option value="@table">@table</option>
         }
     </select>
+
+    <br /><br />
+
+    <label>Enter Query:</label>
+    <input type="text" id="queryInput" placeholder="SELECT * FROM table WHERE key = 'value' AND other_key > '10'" style="width: 80%;" />
+    <button id="runQuery">Run Query</button>
+
+    <br /><br />
 
     <table id="dataTable" class="display">
         <thead></thead>
@@ -34,11 +44,16 @@
     @section Scripts {
         <script>
             $(document).ready(function () {
-                $('#tableSelect').change(function () {
-                    let tableName = $(this).val();
-                    if (!tableName) return;
+                $('#runQuery').click(function () {
+                    let tableName = $('#tableSelect').val();
+                    let queryText = $('#queryInput').val();
 
-                    $.getJSON('/api/dynamo/data?table=' + tableName, function (data) {
+                    if (!tableName) {
+                        alert("Please select a table.");
+                        return;
+                    }
+
+                    $.getJSON('/api/dynamo/query?table=' + tableName + '&query=' + encodeURIComponent(queryText), function (data) {
                         if (data.error) {
                             alert(data.error);
                             return;
